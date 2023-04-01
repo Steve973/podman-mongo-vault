@@ -1,0 +1,60 @@
+#########################################################
+## HashiCorp Vault Service
+#########################################################
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault
+spec:
+  ports:
+    - name: vault-tcp
+      port: 8200
+      protocol: TCP
+      targetPort: 8200
+  selector:
+    app: vault
+
+#########################################################
+## HashiCorp Vault Deployment
+#########################################################
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vault
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vault
+  template:
+    metadata:
+      labels:
+        app: vault
+        stackId: data
+        traefik.enable: true
+        traefik.tcp.routers.vault-router.entrypoints: vault-tcp
+        traefik.tcp.routers.vault-router.rule: HostSNI(`localhost`)
+        traefik.tcp.routers.vault-router.service: vault
+        traefik.tcp.routers.vault-router.tls: true
+        traefik.tcp.routers.vault-router.tls.options: default
+        traefik.tcp.services.vault.loadbalancer.server.port: 8200
+    spec:
+      containers:
+        - name: vault
+          image: docker.io/library/vault:1.13.1
+          volumeMounts:
+            - mountPath: /vault/logs
+              name: vault-logs-dir
+            - mountPath: /vault/file
+              name: vault-file-dir
+      volumes:
+        - name: vault-logs-dir
+          hostPath:
+            path: "/tmp/vault-demo/vault/logs"
+            type: Directory
+        - name: vault-file-dir
+          hostPath:
+            path: "/tmp/vault-demo/vault/file"
+            type: Directory

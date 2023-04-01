@@ -1,0 +1,111 @@
+#########################################################
+## MongoDB Service
+#########################################################
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb
+spec:
+  ports:
+    - name: mongodb-tcp
+      port: 27017
+      protocol: TCP
+      targetPort: 27017
+  selector:
+    app: mongodb
+
+#########################################################
+## MongoDB Deployment
+#########################################################
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+        stackId: data
+        traefik.enable: true
+        traefik.tcp.routers.mongodb-router.entrypoints: mongo-tcp
+        traefik.tcp.routers.mongodb-router.rule: HostSNI(`localhost`)
+        traefik.tcp.routers.mongodb-router.service: mongodb
+        traefik.tcp.routers.mongodb-router.tls: true
+        traefik.tcp.routers.mongodb-router.tls.options: default
+        traefik.tcp.services.mongodb.loadbalancer.server.port: 27017
+    spec:
+      containers:
+        - name: mongodb
+          image: docker.io/library/mongo:6
+          args:
+            - --quiet
+            - --keyFile
+            - /rs-keys/rs-key
+            - --replSet
+            - demo-rs
+            - --bind_ip_all
+            - --auth
+            - --enableFreeMonitoring
+            - off
+            - --journal
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: superuser
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: test
+            - name: MONGO_INITDB_DATABASE
+              value: admin
+          volumeMounts:
+            - mountPath: /data/db
+              name: mongodb-data-dir
+            - mountPath: /data/configdb
+              name: mongodb-configdb-dir
+            - mountPath: /rs-keys
+              name: mongodb-replicaset-keys-dir
+            - mountPath: /docker-entrypoint-initdb.d
+              name: mongodb-initdb-dir
+            - mountPath: /local/bin
+              name: mongodb-util-scripts-dir
+            - mountPath: /data/archive
+              name: mongodb-data-archive-dir
+          livenessProbe:
+            exec:
+              command:
+                - mongosh
+                - --quiet
+                - --eval
+                - "db.runCommand('ping').ok"
+            initialDelaySeconds: 10
+            periodSeconds: 5
+      volumes:
+        - name: mongodb-data-dir
+          hostPath:
+            path: "/tmp/vault-demo/mongodb/db"
+            type: Directory
+        - name: mongodb-configdb-dir
+          hostPath:
+            path: "/tmp/vault-demo/mongodb/configdb"
+            type: Directory
+        - name: mongodb-replicaset-keys-dir
+          hostPath:
+            path: "/tmp/vault-demo/mongodb/rs-keys"
+            type: Directory
+        - name: mongodb-initdb-dir
+          hostPath:
+            path: "/tmp/vault-demo/mongodb/init-scripts"
+            type: Directory
+        - name: mongodb-util-scripts-dir
+          hostPath:
+            path: "/tmp/vault-demo/mongodb/util-scripts"
+            type: Directory
+        - name: mongodb-data-archive-dir
+          hostPath:
+            path: "/tmp/vault-demo/mongodb/archive"
+            type: Directory

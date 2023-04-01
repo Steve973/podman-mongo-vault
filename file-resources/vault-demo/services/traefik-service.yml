@@ -1,0 +1,115 @@
+#########################################################
+## Traefik Service
+#########################################################
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik
+spec:
+  ports:
+    - name: dashboard-port
+      port: 8888
+      protocol: TCP
+      targetPort: 8888
+    - name: mongo-port
+      port: 27017
+      protocol: TCP
+      targetPort: 27017
+    - name: vault-port
+      port: 8200
+      protocol: TCP
+      targetPort: 8200
+  selector:
+    app: traefik
+
+#########################################################
+## Traefik Deployment
+#########################################################
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: proxy
+  template:
+    metadata:
+      labels:
+        app: proxy
+        stackId: data
+        traefik.enable: true
+        traefik.http.routers.dashboard.entrypoints: websecure
+        traefik.http.routers.dashboard.rule: HostRegexp(`data.{name:.+}`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))
+        traefik.http.routers.dashboard.tls: true
+        traefik.http.routers.dashboard.tls.options: default
+        traefik.http.routers.dashboard.service: api@internal
+        traefik.http.routers.dashboard.middlewares: dashboard-auth
+        traefik.http.middlewares.dashboard-auth.basicauth.usersfile: /etc/credentials.txt
+    spec:
+      containers:
+        - name: proxy
+          image: docker.io/traefik:v2.9.9
+          args:
+            - --global.checkNewVersion=false
+            - --global.sendAnonymousUsage=false
+            - --accessLog=true
+            - --accessLog.format=json
+            - --api=true
+            - --api.dashboard=true
+            - --entrypoints.websecure.address=:8888
+            - --entrypoints.mongo-tcp.address=:27017
+            - --entrypoints.vault-tcp.address=:8200
+            - --providers.docker=true
+            - --providers.docker.exposedbydefault=false
+            - --providers.docker.network=data_network
+            - --providers.docker.constraints=Label(`stackId`,`data`)
+            - --providers.file.directory=/etc/traefik/dynamic
+          volumeMounts:
+            - mountPath: /var/run/docker.sock
+              name: podman-sock-file
+            - mountPath: /etc/traefik/dynamic
+              name: traefik-dynamic-config-dir
+            - mountPath: /etc/credentials.txt
+              name: traefik-dashboard-basic-auth-file
+            - mountPath: /certs/test.crt
+              name: test-cert-file
+            - mountPath: /certs/test.key
+              name: test-key-file
+            - mountPath: /certs/trust.pem
+              name: trust-pem-file
+          ports:
+            - containerPort: 8888
+              hostPort: 8888
+            - containerPort: 27017
+              hostPort: 27017
+            - containerPort: 8200
+              hostPort: 8200
+      volumes:
+        - name: podman-sock-file
+          hostPath:
+            path: /run/user/1000/podman/podman.sock
+            type: File
+        - name: traefik-dynamic-config-dir
+          hostPath:
+            path: "/tmp/vault-demo/traefik/config"
+            type: Directory
+        - name: traefik-dashboard-basic-auth-file
+          hostPath:
+            path: "/tmp/vault-demo/traefik/credentials.txt"
+            type: File
+        - name: test-cert-file
+          hostPath:
+            path: "/tmp/vault-demo/certs/test.crt"
+            type: File
+        - name: test-key-file
+          hostPath:
+            path: "/tmp/vault-demo/certs/test.key"
+            type: File
+        - name: trust-pem-file
+          hostPath:
+            path: "/tmp/vault-demo/certs/myCA.pem"
+            type: File
