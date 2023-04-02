@@ -62,7 +62,7 @@ spec:
             - --api.dashboard=true
             - --entrypoints.websecure.address=:8888
             - --entrypoints.mongo-tcp.address=:27017
-            - --entrypoints.vault-tcp.address=:8200
+            - --entrypoints.vault-http.address=:8200
             - --providers.docker=true
             - --providers.docker.exposedbydefault=false
             - --providers.docker.network=data_network
