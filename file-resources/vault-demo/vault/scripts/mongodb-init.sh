@@ -7,8 +7,8 @@ vault secrets enable -path=mongodb database
 vault write mongodb/config/mongo-test \
       plugin_name=mongodb-database-plugin \
       allowed_roles="tester" \
-      connection_url="mongodb://{{username}}:{{password}}@mongodb-pod:27017/admin?tls=false" \
-      username="superuser" \
+      connection_url="mongodb://{{username}}:{{password}}@mongodb-pod:${mongo.port.container}/admin?tls=false" \
+      username="@mongo.root-user.name@" \
       password="test"
 
 # Create a role

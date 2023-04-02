@@ -1,7 +1,7 @@
 use admin;
 db.createUser(
     {
-        user: "appuser",
+        user: "@mongo.app-user.name@",
         pwd: "test",
         roles: [
             {role: "dbAdminAnyDatabase"}

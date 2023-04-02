@@ -9,9 +9,9 @@ metadata:
 spec:
   ports:
     - name: mongodb-tcp
-      port: 27017
+      port: @mongo.port.container@
       protocol: TCP
-      targetPort: 27017
+      targetPort: @mongo.port.container@
   selector:
     app: mongodb
 
@@ -39,17 +39,17 @@ spec:
         traefik.tcp.routers.mongodb-router.service: mongodb
         traefik.tcp.routers.mongodb-router.tls: true
         traefik.tcp.routers.mongodb-router.tls.options: default
-        traefik.tcp.services.mongodb.loadbalancer.server.port: 27017
+        traefik.tcp.services.mongodb.loadbalancer.server.port: @mongo.port.container@
     spec:
       containers:
         - name: mongodb
-          image: docker.io/library/mongo:6
+          image: docker.io/library/mongo:@mongo.version@
           args:
             - --quiet
             - --keyFile
             - /data/db/rs-keys/rs-key
             - --replSet
-            - demo-rs
+            - @mongo.replica-set.name@
             - --bind_ip_all
             - --auth
             - --enableFreeMonitoring
@@ -71,7 +71,7 @@ spec:
             periodSeconds: 5
       initContainers:
         - name: 01-mongodb-init
-          image: docker.io/library/mongo:6
+          image: docker.io/library/mongo:@mongo.version@
           command:
             - init-entrypoint-wrapper.sh
           env:
@@ -91,7 +91,7 @@ spec:
             - mountPath: /usr/local/bin/init-entrypoint-wrapper.sh
               name: mongodb-entrypoint-wrapper
         - name: 02-mongodb-rs-init
-          image: docker.io/library/mongo:6
+          image: docker.io/library/mongo:@mongo.version@
           command:
             - init-replica-set.sh
           args:
@@ -101,7 +101,7 @@ spec:
             - --keyFile
             - /data/db/rs-keys/rs-key
             - --replSet
-            - demo-rs
+            - @mongo.replica-set.name@
             - --auth
             - --journal
           volumeMounts:

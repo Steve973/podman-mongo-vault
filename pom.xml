@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.example</groupId>
+  <artifactId>data-stack-deployment</artifactId>
+  <version>1.0.0</version>
+
+  <packaging>pom</packaging>
+
+  <name>data-stack-deployment</name>
+
+  <properties>
+    <!-- application versions   -->
+    <elk.version>8.5.3</elk.version>
+    <mongo.version>6.0.5</mongo.version>
+    <vault.version>1.13.1</vault.version>
+    <traefik.version>v2.9.9</traefik.version>
+    <!-- container ports   -->
+    <data-dashboard.port>8444</data-dashboard.port>
+    <elastic.port.host>9200</elastic.port.host>
+    <elastic.port.container>9200</elastic.port.container>
+    <kibana.port.host>5601</kibana.port.host>
+    <kibana.port.container>5601</kibana.port.container>
+    <mongo.port.host>27017</mongo.port.host>
+    <mongo.port.container>27017</mongo.port.container>
+    <vault.port.host>8200</vault.port.host>
+    <vault.port.container>8200</vault.port.container>
+    <!-- app variables   -->
+    <mongo.replica-set.name>data-rs-main</mongo.replica-set.name>
+    <mongo.root-user.name>superuser</mongo.root-user.name>
+    <mongo.app-user.name>appuser</mongo.app-user.name>
+    <!-- directories -->
+    <install.dir>/tmp/vault-demo</install.dir>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>3.5.0</version>
+        <configuration>
+          <descriptors>
+            <descriptor>assembly/assembly.xml</descriptor>
+          </descriptors>
+          <appendAssemblyId>false</appendAssemblyId>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!--      <plugin>-->
+      <!--        <groupId>com.soebes.maven.plugins</groupId>-->
+      <!--        <artifactId>iterator-maven-plugin</artifactId>-->
+      <!--        <version>0.5.1</version>-->
+      <!--        <executions>-->
+      <!--          <execution>-->
+      <!--            <phase>package</phase>-->
+      <!--            <goals>-->
+      <!--              <goal>iterator</goal>-->
+      <!--            </goals>-->
+      <!--            <configuration>-->
+      <!--              <itemsWithProperties>-->
+      <!--                <itemWithProperty>-->
+      <!--                  <name>dev</name>-->
+      <!--                  <properties>-->
+      <!--                    <arango.port>8529</arango.port>-->
+      <!--                    <data-dashboard.port>8444</data-dashboard.port>-->
+      <!--                    <elastic.port>9200</elastic.port>-->
+      <!--                    <grafana.port>3000</grafana.port>-->
+      <!--                    <kibana.port>5601</kibana.port>-->
+      <!--                    <mongo.port>27017</mongo.port>-->
+      <!--                    <nifi.port>8888</nifi.port>-->
+      <!--                  </properties>-->
+      <!--                </itemWithProperty>-->
+      <!--              </itemsWithProperties>-->
+      <!--              <pluginExecutors>-->
+      <!--                <pluginExecutor>-->
+      <!--                  <plugin>-->
+      <!--                    <groupId>org.apache.maven.plugins</groupId>-->
+      <!--                    <artifactId>maven-assembly-plugin</artifactId>-->
+      <!--                    <version>2.5.2</version>-->
+      <!--                  </plugin>-->
+      <!--                  <goal>single</goal>-->
+      <!--                  <configuration>-->
+      <!--                    <descriptors>-->
+      <!--                      <descriptor>${project.basedir}/@item@.xml</descriptor>-->
+      <!--                    </descriptors>-->
+      <!--                    <appendAssemblyId>false</appendAssemblyId>-->
+      <!--                  </configuration>-->
+      <!--                </pluginExecutor>-->
+      <!--              </pluginExecutors>-->
+      <!--            </configuration>-->
+      <!--          </execution>-->
+      <!--        </executions>-->
+      <!--      </plugin>-->
+    </plugins>
+  </build>
+</project>

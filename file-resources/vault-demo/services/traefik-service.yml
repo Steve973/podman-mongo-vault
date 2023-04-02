@@ -9,17 +9,17 @@ metadata:
 spec:
   ports:
     - name: dashboard-port
-      port: 8888
+      port: @data-dashboard.port@
       protocol: TCP
-      targetPort: 8888
+      targetPort: @data-dashboard.port@
     - name: mongo-port
-      port: 27017
+      port: @mongo.port.container@
       protocol: TCP
-      targetPort: 27017
+      targetPort: @mongo.port.container@
     - name: vault-port
-      port: 8200
+      port: @vault.port.container@
       protocol: TCP
-      targetPort: 8200
+      targetPort: @vault.port.container@
   selector:
     app: traefik
 
@@ -52,7 +52,7 @@ spec:
     spec:
       containers:
         - name: proxy
-          image: docker.io/traefik:v2.9.9
+          image: docker.io/traefik:@traefik.version@
           args:
             - --global.checkNewVersion=false
             - --global.sendAnonymousUsage=false
@@ -60,9 +60,9 @@ spec:
             - --accessLog.format=json
             - --api=true
             - --api.dashboard=true
-            - --entrypoints.websecure.address=:8888
-            - --entrypoints.mongo-tcp.address=:27017
-            - --entrypoints.vault-http.address=:8200
+            - --entrypoints.websecure.address=:@data-dashboard.port@
+            - --entrypoints.mongo-tcp.address=:@mongo.port.host@
+            - --entrypoints.vault-http.address=:@vault.port.host@
             - --providers.docker=true
             - --providers.docker.exposedbydefault=false
             - --providers.docker.network=data_network
@@ -82,12 +82,12 @@ spec:
             - mountPath: /certs/trust.pem
               name: trust-pem-file
           ports:
-            - containerPort: 8888
-              hostPort: 8888
-            - containerPort: 27017
-              hostPort: 27017
-            - containerPort: 8200
-              hostPort: 8200
+            - containerPort: @data-dashboard.port@
+              hostPort: @data-dashboard.port@
+            - containerPort: @mongo.port.container@
+              hostPort: @mongo.port.host@
+            - containerPort: @vault.port.container@
+              hostPort: @vault.port.host@
       volumes:
         - name: podman-sock-file
           hostPath:

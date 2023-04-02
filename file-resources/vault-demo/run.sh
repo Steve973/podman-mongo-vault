@@ -1,19 +1,15 @@
 #!/bin/bash
 
-WORK_DIR=/tmp/vault-demo
-
-copy_file_resources() {
-  echo "Creating or updating deployment resources"
-  mkdir -p ${WORK_DIR}
-  rsync -av file-resources/vault-demo/* ${WORK_DIR} --exclude=.deleteme
-  cat ./file-resources/services/mongodb-service.yml \
-    ./file-resources/services/vault-service.yml \
-    ./file-resources/services/traefik-service.yml > ${WORK_DIR}/services/stack.yml
-}
+# The list of services to run.  Keep this list in the order that they should be started.
+declare -a SERVICES=(
+  mongodb
+  vault
+  traefik
+)
 
 create_cert_ext() {
   # create the CA extension file
-  cat <<EOF > "${WORK_DIR}/certs/test.ext"
+  cat <<EOF > ./certs/test.ext
 authorityKeyIdentifier=keyid,issuer
 basicConstraints=CA:FALSE
 keyUsage=digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
@@ -26,10 +22,10 @@ EOF
 }
 
 create_certs() {
-  if [ ! -d "${WORK_DIR}/certs" ] || [ -z "$(ls -A ${WORK_DIR}/certs)" ]; then
+  if [ ! -d ./certs ] || [ -z "$(ls -A ./certs)" ]; then
     # create the CA extension file
     create_cert_ext
-    pushd "${WORK_DIR}/certs"
+    pushd ./certs || exit
     # generate the local CA key
     openssl genrsa -out ./myCA.key 2048
     # generate the local CA cert
@@ -43,36 +39,37 @@ create_certs() {
     # create a jks truststore
     keytool -import -trustcacerts -noprompt -alias "$(hostname)" -ext san=dns:localhost,ip:127.0.0.1 -file ./myCA.pem -keystore ./truststore.jks -storepass changeit
     # return to previous dir
-    popd
+    popd || exit
   else
-    echo "Certs already present in ${WORK_DIR}/certs"
+    echo "Certs already present in ./certs"
   fi
 }
 
 download_sample_data() {
   echo "Downloading sample data"
-  curl https://atlas-education.s3.amazonaws.com/sampledata.archive -o ${WORK_DIR}/mongodb/db/archive/sampledata.archive
-}
-
-init() {
-  if [ ! -d "${WORK_DIR}" ]; then
-    copy_file_resources
-    create_certs
-    download_sample_data
-  else
-    copy_file_resources
+  if [ ! -f ./mongodb/db/archive/sampledata.archive ]; then
+    curl https://atlas-education.s3.amazonaws.com/sampledata.archive -o ./mongodb/db/archive/sampledata.archive
   fi
 }
 
 stop() {
-  podman kube down ${WORK_DIR}/services/stack.yml
+  local cat_command="cat"
+  for app in "${SERVICES[@]}"; do
+    cat_command="${cat_command} ./services/${app}-service.yml"
+  done
+  ${cat_command} | podman kube down -
   podman network remove data_network
 }
 
 start() {
-  init
+  create_certs
+  download_sample_data
   podman network create --ignore data_network
-  podman kube play --network data_network ${WORK_DIR}/services/stack.yml
+  local cat_command="cat"
+  for app in "${SERVICES[@]}"; do
+    cat_command="${cat_command} ./services/${app}-service.yml"
+  done
+  ${cat_command} | podman kube play --replace --network data_network -
 }
 
 TEMP=$(getopt -o st --long start,stop -- "$@")

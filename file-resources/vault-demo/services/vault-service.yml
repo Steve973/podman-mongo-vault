@@ -9,9 +9,9 @@ metadata:
 spec:
   ports:
     - name: vault-tcp
-      port: 8200
+      port: @vault.port.container@
       protocol: TCP
-      targetPort: 8200
+      targetPort: @vault.port.container@
   selector:
     app: vault
 
@@ -39,20 +39,20 @@ spec:
         traefik.http.routers.vault-router.service: vault
         traefik.http.routers.vault-router.tls: true
         traefik.http.routers.vault-router.tls.options: default
-        traefik.http.services.vault.loadbalancer.server.port: 8200
+        traefik.http.services.vault.loadbalancer.server.port: @vault.port.container@
     spec:
       containers:
         - name: vault
-          image: docker.io/hashicorp/vault:1.13.1
+          image: docker.io/hashicorp/vault:@vault.version@
           env:
             - name: VAULT_DEV_ROOT_TOKEN_ID
               value: root
             - name: VAULT_ADDR
-              value: http://127.0.0.1:8200
+              value: http://127.0.0.1:@vault.port.container@
             - name: VAULT_TOKEN
               value: root
             - name: MONGODB_URL
-              value: mongodb-pod:27017
+              value: mongodb-pod:@mongo.port.container@
           volumeMounts:
             - mountPath: /vault/logs
               name: vault-logs-dir
