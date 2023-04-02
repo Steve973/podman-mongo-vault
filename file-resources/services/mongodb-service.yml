@@ -47,7 +47,7 @@ spec:
           args:
             - --quiet
             - --keyFile
-            - /rs-keys/rs-key
+            - /data/db/rs-keys/rs-key
             - --replSet
             - demo-rs
             - --bind_ip_all
@@ -55,6 +55,25 @@ spec:
             - --enableFreeMonitoring
             - off
             - --journal
+          volumeMounts:
+            - mountPath: /data/db
+              name: mongodb-data-dir
+            - mountPath: /data/configdb
+              name: mongodb-data-configdb-dir
+          livenessProbe:
+            exec:
+              command:
+                - mongosh
+                - --quiet
+                - --eval
+                - "db.runCommand('ping').ok"
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      initContainers:
+        - name: 01-mongodb-init
+          image: docker.io/library/mongo:6
+          command:
+            - init-entrypoint-wrapper.sh
           env:
             - name: MONGO_INITDB_ROOT_USERNAME
               value: superuser
@@ -66,46 +85,50 @@ spec:
             - mountPath: /data/db
               name: mongodb-data-dir
             - mountPath: /data/configdb
-              name: mongodb-configdb-dir
-            - mountPath: /rs-keys
-              name: mongodb-replicaset-keys-dir
+              name: mongodb-data-configdb-dir
             - mountPath: /docker-entrypoint-initdb.d
               name: mongodb-initdb-dir
-            - mountPath: /local/bin
-              name: mongodb-util-scripts-dir
-            - mountPath: /data/archive
-              name: mongodb-data-archive-dir
-          livenessProbe:
-            exec:
-              command:
-                - mongosh
-                - --quiet
-                - --eval
-                - "db.runCommand('ping').ok"
-            initialDelaySeconds: 10
-            periodSeconds: 5
+            - mountPath: /usr/local/bin/init-entrypoint-wrapper.sh
+              name: mongodb-entrypoint-wrapper
+        - name: 02-mongodb-rs-init
+          image: docker.io/library/mongo:6
+          command:
+            - init-replica-set.sh
+          args:
+            - --fork
+            - --logpath
+            - "/dev/stdout"
+            - --keyFile
+            - /data/db/rs-keys/rs-key
+            - --replSet
+            - demo-rs
+            - --auth
+            - --journal
+          volumeMounts:
+            - mountPath: /data/db
+              name: mongodb-data-dir
+            - mountPath: /data/configdb
+              name: mongodb-data-configdb-dir
+            - mountPath: /usr/local/bin/init-replica-set.sh
+              name: mongodb-init-replica-set
       volumes:
         - name: mongodb-data-dir
           hostPath:
             path: "/tmp/vault-demo/mongodb/db"
             type: Directory
-        - name: mongodb-configdb-dir
+        - name: mongodb-data-configdb-dir
           hostPath:
             path: "/tmp/vault-demo/mongodb/configdb"
-            type: Directory
-        - name: mongodb-replicaset-keys-dir
-          hostPath:
-            path: "/tmp/vault-demo/mongodb/rs-keys"
             type: Directory
         - name: mongodb-initdb-dir
           hostPath:
             path: "/tmp/vault-demo/mongodb/init-scripts"
             type: Directory
-        - name: mongodb-util-scripts-dir
+        - name: mongodb-entrypoint-wrapper
           hostPath:
-            path: "/tmp/vault-demo/mongodb/util-scripts"
-            type: Directory
-        - name: mongodb-data-archive-dir
+            path: "/tmp/vault-demo/mongodb/util-scripts/init-entrypoint-wrapper.sh"
+            type: File
+        - name: mongodb-init-replica-set
           hostPath:
-            path: "/tmp/vault-demo/mongodb/archive"
-            type: Directory
+            path: "/tmp/vault-demo/mongodb/util-scripts/init-replica-set.sh"
+            type: File

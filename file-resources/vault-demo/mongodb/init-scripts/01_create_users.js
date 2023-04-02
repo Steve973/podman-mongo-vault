@@ -3,6 +3,8 @@ db.createUser(
     {
         user: "appuser",
         pwd: "test",
-        roles: [ { role: "dbAdminAnyDatabase" } ]
+        roles: [
+            {role: "dbAdminAnyDatabase"}
+        ]
     }
 );

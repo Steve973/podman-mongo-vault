@@ -1,3 +1,4 @@
 #!/bin/bash
 
-mongorestore --quiet --archive=/data/archive/sampledata.archive
+echo "Importing data"
+mongorestore --archive=/data/db/archive/sampledata.archive
