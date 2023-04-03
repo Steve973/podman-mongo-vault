@@ -15,7 +15,7 @@ done
 echo "Running replica set initiation"
 mongosh --quiet \
   --username @mongo.root-user.name@ \
-  --password test \
+  --password ${MONGO_SUPERUSER_PASSWORD} \
   --authenticationDatabase admin \
   --eval "rs.initiate( { _id: '@mongo.replica-set.name@', version: 1, members: [ { _id: 0, host : 'mongodb-pod:@mongo.port.container@' } ] } )"
 
@@ -29,7 +29,7 @@ done
 echo "Stopping MongoDB init container with 120 second timeout"
 mongosh --quiet \
   --username @mongo.root-user.name@ \
-  --password test \
+  --password ${MONGO_SUPERUSER_PASSWORD} \
   --authenticationDatabase admin \
   --eval 'db.getSiblingDB("admin").shutdownServer({ "timeoutSecs": 120 })'
 

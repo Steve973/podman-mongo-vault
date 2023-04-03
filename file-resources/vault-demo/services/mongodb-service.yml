@@ -76,9 +76,9 @@ spec:
             - init-entrypoint-wrapper.sh
           env:
             - name: MONGO_INITDB_ROOT_USERNAME
-              value: superuser
+              value: @mongo.root-user.name@
             - name: MONGO_INITDB_ROOT_PASSWORD
-              value: test
+              value: ${MONGO_SUPERUSER_PASSWORD}
             - name: MONGO_INITDB_DATABASE
               value: admin
           volumeMounts:
@@ -114,21 +114,21 @@ spec:
       volumes:
         - name: mongodb-data-dir
           hostPath:
-            path: "/tmp/vault-demo/mongodb/db"
+            path: "@install.dir@/mongodb/db"
             type: Directory
         - name: mongodb-data-configdb-dir
           hostPath:
-            path: "/tmp/vault-demo/mongodb/configdb"
+            path: "@install.dir@/mongodb/configdb"
             type: Directory
         - name: mongodb-initdb-dir
           hostPath:
-            path: "/tmp/vault-demo/mongodb/init-scripts"
+            path: "@install.dir@/mongodb/init-scripts"
             type: Directory
         - name: mongodb-entrypoint-wrapper
           hostPath:
-            path: "/tmp/vault-demo/mongodb/util-scripts/init-entrypoint-wrapper.sh"
+            path: "@install.dir@/mongodb/util-scripts/init-entrypoint-wrapper.sh"
             type: File
         - name: mongodb-init-replica-set
           hostPath:
-            path: "/tmp/vault-demo/mongodb/util-scripts/init-replica-set.sh"
+            path: "@install.dir@/mongodb/util-scripts/init-replica-set.sh"
             type: File

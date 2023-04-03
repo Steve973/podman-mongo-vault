@@ -27,9 +27,12 @@
     <vault.port.host>8200</vault.port.host>
     <vault.port.container>8200</vault.port.container>
     <!-- app variables   -->
+    <elastic.admin-user.name>elastic</elastic.admin-user.name>
+    <kibana.system-user.name>kibana_system</kibana.system-user.name>
     <mongo.replica-set.name>data-rs-main</mongo.replica-set.name>
     <mongo.root-user.name>superuser</mongo.root-user.name>
     <mongo.app-user.name>appuser</mongo.app-user.name>
+    <traefik.dashboard-user.name>dashboard</traefik.dashboard-user.name>
     <!-- directories -->
     <install.dir>/tmp/vault-demo</install.dir>
   </properties>

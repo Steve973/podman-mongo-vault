@@ -9,7 +9,7 @@ vault write mongodb/config/mongo-test \
       allowed_roles="tester" \
       connection_url="mongodb://{{username}}:{{password}}@mongodb-pod:${mongo.port.container}/admin?tls=false" \
       username="@mongo.root-user.name@" \
-      password="test"
+      password="${MONGO_SUPERUSER_PASSWORD}"
 
 # Create a role
 vault write mongodb/roles/tester \

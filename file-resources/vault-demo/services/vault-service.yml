@@ -46,11 +46,11 @@ spec:
           image: docker.io/hashicorp/vault:@vault.version@
           env:
             - name: VAULT_DEV_ROOT_TOKEN_ID
-              value: root
+              value: ${VAULT_DEV_ROOT_TOKEN_ID}
             - name: VAULT_ADDR
               value: http://127.0.0.1:@vault.port.container@
             - name: VAULT_TOKEN
-              value: root
+              value: ${VAULT_DEV_ROOT_TOKEN}
             - name: MONGODB_URL
               value: mongodb-pod:@mongo.port.container@
           volumeMounts:
@@ -61,9 +61,9 @@ spec:
       volumes:
         - name: vault-logs-dir
           hostPath:
-            path: "/tmp/vault-demo/vault/logs"
+            path: "@install.dir@/vault/logs"
             type: Directory
         - name: vault-file-dir
           hostPath:
-            path: "/tmp/vault-demo/vault/file"
+            path: "@install.dir@/vault/file"
             type: Directory

@@ -13,13 +13,21 @@ spec:
       protocol: TCP
       targetPort: @data-dashboard.port@
     - name: mongo-port
-      port: @mongo.port.container@
+      port: @mongo.port.host@
       protocol: TCP
-      targetPort: @mongo.port.container@
+      targetPort: @mongo.port.host@
+    - name: elastic-port
+      port: @elastic.port.host@
+      protocol: TCP
+      targetPort: @elastic.port.host@
+    - name: kibana-port
+      port: @kibana.port.host@
+      protocol: TCP
+      targetPort: @kibana.port.host@
     - name: vault-port
-      port: @vault.port.container@
+      port: @vault.port.host@
       protocol: TCP
-      targetPort: @vault.port.container@
+      targetPort: @vault.port.host@
   selector:
     app: traefik
 
@@ -62,6 +70,8 @@ spec:
             - --api.dashboard=true
             - --entrypoints.websecure.address=:@data-dashboard.port@
             - --entrypoints.mongo-tcp.address=:@mongo.port.host@
+            - --entrypoints.elasticsearch-http.address=:@elastic.port.host@
+            - --entrypoints.kibana-http.address=:@kibana.port.host@
             - --entrypoints.vault-http.address=:@vault.port.host@
             - --providers.docker=true
             - --providers.docker.exposedbydefault=false
@@ -86,30 +96,34 @@ spec:
               hostPort: @data-dashboard.port@
             - containerPort: @mongo.port.container@
               hostPort: @mongo.port.host@
+            - containerPort: @elastic.port.container@
+              hostPort: @elastic.port.host@
+            - containerPort: @kibana.port.container@
+              hostPort: @kibana.port.host@
             - containerPort: @vault.port.container@
               hostPort: @vault.port.host@
       volumes:
         - name: podman-sock-file
           hostPath:
-            path: /run/user/1000/podman/podman.sock
+            path: ${XDG_RUNTIME_DIR}/podman/podman.sock
             type: File
         - name: traefik-dynamic-config-dir
           hostPath:
-            path: "/tmp/vault-demo/traefik/config"
+            path: "@install.dir@/traefik/config"
             type: Directory
         - name: traefik-dashboard-basic-auth-file
           hostPath:
-            path: "/tmp/vault-demo/traefik/credentials.txt"
+            path: "@install.dir@/traefik/credentials.txt"
             type: File
         - name: test-cert-file
           hostPath:
-            path: "/tmp/vault-demo/certs/test.crt"
+            path: "@install.dir@/certs/test.crt"
             type: File
         - name: test-key-file
           hostPath:
-            path: "/tmp/vault-demo/certs/test.key"
+            path: "@install.dir@/certs/test.key"
             type: File
         - name: trust-pem-file
           hostPath:
-            path: "/tmp/vault-demo/certs/myCA.pem"
+            path: "@install.dir@/certs/myCA.pem"
             type: File
