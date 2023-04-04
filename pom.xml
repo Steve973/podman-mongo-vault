@@ -12,7 +12,7 @@
 
   <properties>
     <!-- application versions   -->
-    <elk.version>8.5.3</elk.version>
+    <elk.version>8.7.0</elk.version>
     <mongo.version>6.0.5</mongo.version>
     <vault.version>1.13.1</vault.version>
     <traefik.version>v2.9.9</traefik.version>

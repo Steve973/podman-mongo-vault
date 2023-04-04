@@ -47,8 +47,29 @@ spec:
           volumeMounts:
             - mountPath: /usr/share/elasticsearch/data
               name: elasticsearch-data-dir
+      initContainers:
+        - name: es01-init
+          image: docker.io/library/elasticsearch:@elk.version@
+          command:
+            - init-elasticsearch.sh
+          env:
+            - name: discovery.type
+              value: single-node
+            - name: ELASTIC_PASSWORD
+              value: ${ELASTIC_ADMIN_PASSWORD}
+            - name: xpack.security.enabled
+              value: "true"
+          volumeMounts:
+            - mountPath: /usr/share/elasticsearch/data
+              name: elasticsearch-data-dir
+            - mountPath: /usr/local/bin/init-elasticsearch.sh
+              name: elasticsearch-init-script
       volumes:
         - name: elasticsearch-data-dir
           hostPath:
             path: "@install.dir@/elasticsearch/data"
             type: Directory
+        - name: elasticsearch-init-script
+          hostPath:
+            path: "@install.dir@/elasticsearch/init-scripts/init-elasticsearch.sh"
+            type: File

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "Starting Elasticsearch for initialization"
+/usr/local/bin/docker-entrypoint.sh -p /tmp/elasticsearch-pid -d
+
 echo "Waiting for Elasticsearch availability"
 until curl -s http://localhost:@elastic.port.container@ | grep -q "missing authentication credentials"
 do
@@ -13,5 +16,9 @@ until curl -s -X POST -u "@elastic.admin-user.name@:${ELASTIC_ADMIN_PASSWORD}" -
 do
   sleep 2
 done
+
+echo "Stopping Elasticsearch"
+kill -SIGTERM "$(cat /tmp/elasticsearch-pid)"
+sleep 10
 
 echo "Elasticsearch initialization complete"
